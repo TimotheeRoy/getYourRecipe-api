@@ -88,3 +88,16 @@ func getIngredientsForRecipe(db *sqlx.DB, recipe_id string) ([]RecipeIngredients
 	return ingredients, nil
 
 }
+
+
+func getId(db *sqlx.DB, recipe string) (string, error) {
+	var id string
+
+	query := "SELECT id FROM recipe WHERE name = ?"
+
+	err := db.Get(id, query, recipe)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}

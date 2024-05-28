@@ -17,11 +17,11 @@ func main() {
 	//route init
 	r := gin.Default()
 
-	r.GET("/", func(ctx *gin.Context) {
+	r.GET("/recipe", func(ctx *gin.Context) {
 		data, err := getRecipeList(db)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
+				"error": err.Error(),
 			})
 		} else {
 			ctx.JSON(http.StatusOK, data)
@@ -35,7 +35,7 @@ func main() {
 		data, err := getIngredientsForRecipe(db, id)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
+				"error": err.Error(),
 			})
 		} else {
 			ctx.JSON(http.StatusOK, data)
@@ -43,15 +43,22 @@ func main() {
 	})
 
 	r.GET("/id/:name", func(ctx *gin.Context) {
-
 		name := ctx.Param("name")
 
 		data, err := getId(db, name)
 		if err != nil {
-			log.Print(data,err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
+				"error": err.Error(),
 			})
+		} else {
+			ctx.JSON(http.StatusOK, data)
+		}
+	})
+
+	r.GET("/", func(ctx *gin.Context) {
+		data, err := getRecipeFromIngredients(db, []string{"onion"})
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusOK, data)
 		}

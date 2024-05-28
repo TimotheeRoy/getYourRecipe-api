@@ -9,30 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Ingredients struct {
-	Id   int
-	Name string
-}
 
-type Recipe struct {
-	Id int
-	Name string
-	Description string
-}
-
-type Instruments struct {
-	Id int
-	Name string
-}
-
-type RecipeIngredients struct {
-	Id int
-	Name string
-	Id_recipe int
-	Id_ingredients int
-	Quantity int 
-	Unity string
-}
 
 func ConnectDB() (*sqlx.DB, error) {
 	err := godotenv.Load()
@@ -48,10 +25,9 @@ func ConnectDB() (*sqlx.DB, error) {
 	}
 
 	return db, nil
-
 }
 
-
+// retourne une liste des recettes
 func getRecipeList(db *sqlx.DB)  ([]Recipe, error) {
 
 	var recipe []Recipe
@@ -65,10 +41,11 @@ func getRecipeList(db *sqlx.DB)  ([]Recipe, error) {
 		return nil, err
 	}
 
-	return recipe, nil
-	
+	return recipe, nil	
 }
 
+
+// retourne la liste des ingrédients d'une recette
 func getIngredientsForRecipe(db *sqlx.DB, recipe_id string) ([]RecipeIngredients, error) {
 
 	var ingredients []RecipeIngredients
@@ -86,10 +63,9 @@ func getIngredientsForRecipe(db *sqlx.DB, recipe_id string) ([]RecipeIngredients
 	}
 
 	return ingredients, nil
-
 }
 
-
+// retourne l'id d'une recette à partir de son nom 
 func getId(db *sqlx.DB, recipe string) (string, error) {
 	var id string
 
@@ -101,3 +77,25 @@ func getId(db *sqlx.DB, recipe string) (string, error) {
 	}
 	return id, nil
 }
+
+
+// retourne une recette qui correspond le plus à la liste d'ingredients en parametre 
+func getRecipeFromIngredients(db *sqlx.DB, ingredients []string) ([]Recipe, error) {
+	var recipes []Recipe 
+
+	query, args, err := sqlx.In(`
+	SELECT DISTINCT recipe.name, recipe.description FROM recipe
+	JOIN recipe_ingredients ON recipe.id = recipe_ingredients.id_recipe
+	JOIN ingredients ON recipe_ingredients.id_ingredients = ingredients.id
+	WHERE ingredients.name IN (?)`, ingredients)
+	if err != nil {
+		return nil, err
+	}
+
+	query = db.Rebind(query)
+
+	err = db.Get(recipes, query, args...)
+	if err != nil  {
+		return nil , err
+	}
+	return recipes, nil}
